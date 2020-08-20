@@ -271,7 +271,10 @@ ShardPlacementWhenColocatedWithDistTable(DistObjectCacheEntry *procedure,
 		return NULL;
 	}
 
+	/* Get the list of active shard placements ordered by the groupid */
 	List *placementList = ActiveShardPlacementList(shardInterval->shardId);
+	placementList = SortList(placementList, CompareShardPlacementsByGroupId);
+
 	if (list_length(placementList) != 1)
 	{
 		/* punt on this for now */

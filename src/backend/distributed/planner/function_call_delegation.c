@@ -28,6 +28,7 @@
 #include "distributed/insert_select_planner.h"
 #include "distributed/metadata_utility.h"
 #include "distributed/coordinator_protocol.h"
+#include "distributed/listutils.h"
 #include "distributed/metadata_cache.h"
 #include "distributed/multi_executor.h"
 #include "distributed/multi_physical_planner.h"
@@ -434,7 +435,10 @@ ShardPlacementWhenColocatedWithReferenceTable(CitusTableCacheEntry *cacheEntry)
 {
 	const ShardInterval *shardInterval = cacheEntry->sortedShardIntervalArray[0];
 	const uint64 referenceTableShardId = shardInterval->shardId;
+
+	/* Get the list of active shard placements ordered by the groupid */
 	List *placementList = ActiveShardPlacementList(referenceTableShardId);
+	placementList = SortList(placementList, CompareShardPlacementsByGroupId);
 
 	if (TaskAssignmentPolicy == TASK_ASSIGNMENT_ROUND_ROBIN)
 	{
