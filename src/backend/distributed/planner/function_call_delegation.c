@@ -442,6 +442,10 @@ ShardPlacementWhenColocatedWithReferenceTable(CitusTableCacheEntry *cacheEntry)
 
 	if (TaskAssignmentPolicy == TASK_ASSIGNMENT_ROUND_ROBIN)
 	{
+		/* do not try to delegate to coordinator if it is in metadata */
+		placementList = RemoveCoordinatorPlacementFromList(placementList);
+
+		/* reorder the placement list */
 		placementList = RoundRobinReorder(placementList);
 	}
 

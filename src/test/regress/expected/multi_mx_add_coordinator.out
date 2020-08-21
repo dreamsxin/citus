@@ -92,6 +92,46 @@ NOTICE:  executing the command locally: SELECT count(*) AS count FROM mx_add_coo
      0
 (1 row)
 
+-- test that distributed functions also use local execution
+CREATE OR REPLACE FUNCTION my_group_id()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    gid int;
+BEGIN
+    SELECT groupid INTO gid
+    FROM pg_dist_local_group;
+
+    RAISE NOTICE 'my group id is %', gid;
+END;
+$$;
+SELECT create_distributed_function('my_group_id()', colocate_with := 'ref');
+DEBUG:  switching to sequential query execution mode
+DETAIL:  A distributed function is created. To make sure subsequent commands see the type correctly we need to make sure to use only one connection for all future commands
+ create_distributed_function
+---------------------------------------------------------------------
+
+(1 row)
+
+SELECT my_group_id();
+DEBUG:  the worker node does not have metadata
+NOTICE:  my group id is 0
+CONTEXT:  PL/pgSQL function my_group_id() line 8 at RAISE
+ my_group_id
+---------------------------------------------------------------------
+
+(1 row)
+
+SELECT my_group_id();
+DEBUG:  the worker node does not have metadata
+NOTICE:  my group id is 0
+CONTEXT:  PL/pgSQL function my_group_id() line 8 at RAISE
+ my_group_id
+---------------------------------------------------------------------
+
+(1 row)
+
 -- for round-robin policy, always go to workers
 SET citus.task_assignment_policy TO "round-robin";
 SELECT count(*) FROM ref;
@@ -116,6 +156,33 @@ DEBUG:  Creating router plan
  count
 ---------------------------------------------------------------------
      0
+(1 row)
+
+SELECT my_group_id();
+DEBUG:  pushing down the function call
+NOTICE:  my group id is 14
+DETAIL:  from localhost:xxxxx
+ my_group_id
+---------------------------------------------------------------------
+
+(1 row)
+
+SELECT my_group_id();
+DEBUG:  pushing down the function call
+NOTICE:  my group id is 18
+DETAIL:  from localhost:xxxxx
+ my_group_id
+---------------------------------------------------------------------
+
+(1 row)
+
+SELECT my_group_id();
+DEBUG:  pushing down the function call
+NOTICE:  my group id is 14
+DETAIL:  from localhost:xxxxx
+ my_group_id
+---------------------------------------------------------------------
+
 (1 row)
 
 -- modifications always go through local shard as well as remote ones
@@ -183,9 +250,7 @@ SELECT verify_metadata('localhost', :worker_1_port),
  t               | t
 (1 row)
 
+SET client_min_messages TO error;
 DROP SCHEMA mx_add_coordinator CASCADE;
-NOTICE:  drop cascades to 2 other objects
-DETAIL:  drop cascades to table ref
-drop cascades to table ref_7000000
 SET search_path TO DEFAULT;
 RESET client_min_messages;

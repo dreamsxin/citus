@@ -44,11 +44,32 @@ SET client_min_messages TO DEBUG;
 SELECT count(*) FROM ref;
 SELECT count(*) FROM ref;
 
+-- test that distributed functions also use local execution
+CREATE OR REPLACE FUNCTION my_group_id()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    gid int;
+BEGIN
+    SELECT groupid INTO gid
+    FROM pg_dist_local_group;
+
+    RAISE NOTICE 'my group id is %', gid;
+END;
+$$;
+SELECT create_distributed_function('my_group_id()', colocate_with := 'ref');
+SELECT my_group_id();
+SELECT my_group_id();
+
 -- for round-robin policy, always go to workers
 SET citus.task_assignment_policy TO "round-robin";
 SELECT count(*) FROM ref;
 SELECT count(*) FROM ref;
 SELECT count(*) FROM ref;
+SELECT my_group_id();
+SELECT my_group_id();
+SELECT my_group_id();
 
 -- modifications always go through local shard as well as remote ones
 INSERT INTO ref VALUES (1);
@@ -86,6 +107,7 @@ SELECT wait_until_metadata_sync(30000);
 SELECT verify_metadata('localhost', :worker_1_port),
        verify_metadata('localhost', :worker_2_port);
 
+SET client_min_messages TO error;
 DROP SCHEMA mx_add_coordinator CASCADE;
 SET search_path TO DEFAULT;
 RESET client_min_messages;

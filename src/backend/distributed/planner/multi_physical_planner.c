@@ -5643,3 +5643,25 @@ TaskListHighestTaskId(List *taskList)
 
 	return highestTaskId;
 }
+
+
+/*
+ * RemoveCoordinatorPlacementFromList walks over shard placements in the given list,
+ * and removes all that are placed in the coordinator.
+ */
+List *
+RemoveCoordinatorPlacementFromList(List *placementList)
+{
+	List *placementListCopy = NIL;
+	ShardPlacement *placement = NULL;
+
+	foreach_ptr(placement, placementList)
+	{
+		if (placement->groupId != COORDINATOR_GROUP_ID)
+		{
+			placementListCopy = lappend(placementListCopy, placement);
+		}
+	}
+
+	return placementListCopy;
+}

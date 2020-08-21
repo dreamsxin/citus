@@ -87,10 +87,10 @@ DETAIL:  from localhost:xxxxx
 -- test round robin task assignment policy uses different workers on consecutive procedure calls.
 SET citus.task_assignment_policy TO 'round-robin';
 CALL my_group_id_proc();
-NOTICE:  my group id is 14
+NOTICE:  my group id is 18
 DETAIL:  from localhost:xxxxx
 CALL my_group_id_proc();
-NOTICE:  my group id is 18
+NOTICE:  my group id is 14
 DETAIL:  from localhost:xxxxx
 RESET citus.task_assignment_policy;
 CREATE PROCEDURE mx_call_proc(x int, INOUT y int)
