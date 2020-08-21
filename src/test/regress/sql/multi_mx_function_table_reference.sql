@@ -50,7 +50,35 @@ SELECT public.wait_until_metadata_sync(30000);
 -- see numerictypmodin in postgres for how typmod is derived
 SELECT run_command_on_workers($$SELECT atttypmod FROM pg_attribute WHERE attnum = 2 AND attrelid = (SELECT typrelid FROM pg_type WHERE typname = 'zoop_table');$$);
 
+-- test that a distributed function can be colocated with a reference table
+CREATE OR REPLACE FUNCTION my_group_id()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    gid int;
+BEGIN
+    SELECT groupid INTO gid
+    FROM pg_dist_local_group;
+
+    RAISE NOTICE 'my group id is %', gid;
+END;
+$$;
+
+CREATE TABLE ref(data int);
+SELECT create_reference_table('ref');
+SELECT create_distributed_function('my_group_id()', colocate_with := 'ref');
+
+SELECT my_group_id();
+SELECT my_group_id();
+
+-- test round robin task assignment policy uses different workers on consecutive function calls.
+SET citus.task_assignment_policy TO 'round-robin';
+SELECT my_group_id();
+SELECT my_group_id();
+
 -- clean up after testing
+RESET citus.task_assignment_policy;
 DROP SCHEMA function_table_reference CASCADE;
 
 -- make sure the worker is added at the end irregardless of anything failing to not make

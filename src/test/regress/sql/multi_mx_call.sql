@@ -40,6 +40,30 @@ create table mx_call_dist_table_enum(id int, key mx_call_enum);
 select create_distributed_table('mx_call_dist_table_enum', 'key');
 insert into mx_call_dist_table_enum values (1,'S'),(2,'A'),(3,'D'),(4,'F');
 
+-- test that a distributed function can be colocated with a reference table
+CREATE OR REPLACE PROCEDURE my_group_id_proc()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    gid int;
+BEGIN
+    SELECT groupid INTO gid
+    FROM pg_dist_local_group;
+
+    RAISE NOTICE 'my group id is %', gid;
+END;
+$$;
+
+SELECT create_distributed_function('my_group_id_proc()', colocate_with := 'mx_call_dist_table_ref');
+
+CALL my_group_id_proc();
+CALL my_group_id_proc();
+
+-- test round robin task assignment policy uses different workers on consecutive procedure calls.
+SET citus.task_assignment_policy TO 'round-robin';
+CALL my_group_id_proc();
+CALL my_group_id_proc();
+RESET citus.task_assignment_policy;
 
 CREATE PROCEDURE mx_call_proc(x int, INOUT y int)
 LANGUAGE plpgsql AS $$
