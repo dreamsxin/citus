@@ -4,6 +4,8 @@
 -- It is unlikely this UDF will become part of Citus, more likely to be added
 -- functionality in pg_partman.
 CREATE OR REPLACE FUNCTION rotate_table(
+    parent_table regclass,
+    partition_table regclass,
     tableam text
 )
 
@@ -19,8 +21,8 @@ DECLARE
 
 BEGIN
 
-    v_parent_table_name := 'github_events';
-    v_table_name := 'github_events_2016';
+    v_parent_table_name := parent_table::text;
+    v_table_name := partition_table::text;
     v_rotating_table_name := v_table_name || '_rotating';
 
     -- create new table to rotate data into
