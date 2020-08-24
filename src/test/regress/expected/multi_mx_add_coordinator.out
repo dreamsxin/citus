@@ -115,18 +115,18 @@ DETAIL:  A distributed function is created. To make sure subsequent commands see
 (1 row)
 
 SELECT my_group_id();
-DEBUG:  the worker node does not have metadata
-NOTICE:  my group id is 0
-CONTEXT:  PL/pgSQL function my_group_id() line 8 at RAISE
+DEBUG:  pushing down the function call
+NOTICE:  my group id is 14
+DETAIL:  from localhost:xxxxx
  my_group_id
 ---------------------------------------------------------------------
 
 (1 row)
 
 SELECT my_group_id();
-DEBUG:  the worker node does not have metadata
-NOTICE:  my group id is 0
-CONTEXT:  PL/pgSQL function my_group_id() line 8 at RAISE
+DEBUG:  pushing down the function call
+NOTICE:  my group id is 14
+DETAIL:  from localhost:xxxxx
  my_group_id
 ---------------------------------------------------------------------
 

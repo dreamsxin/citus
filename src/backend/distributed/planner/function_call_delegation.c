@@ -67,8 +67,6 @@ static ShardPlacement * ShardPlacementForFunctionColocatedWithDistTable(
 	*
 	cacheEntry,
 	PlannedStmt *plan);
-static ShardPlacement * ShardPlacementForFunctionColocatedWithReferenceTable(
-	CitusTableCacheEntry *cacheEntry);
 
 
 /*
@@ -428,12 +426,12 @@ ShardPlacementForFunctionColocatedWithDistTable(DistObjectCacheEntry *procedure,
 
 /*
  * ShardPlacementForFunctionColocatedWithReferenceTable decides on a placement for delegating
- * a procedure call that reads from a reference table.
+ * a function call that reads from a reference table.
  *
  * If citus.task_assignment_policy is set to round-robin, we assign a different placement
  * on consecutive runs. Otherwise the function returns the first placement available.
  */
-static ShardPlacement *
+ShardPlacement *
 ShardPlacementForFunctionColocatedWithReferenceTable(CitusTableCacheEntry *cacheEntry)
 {
 	const ShardInterval *shardInterval = cacheEntry->sortedShardIntervalArray[0];
@@ -443,11 +441,11 @@ ShardPlacementForFunctionColocatedWithReferenceTable(CitusTableCacheEntry *cache
 	List *placementList = ActiveShardPlacementList(referenceTableShardId);
 	placementList = SortList(placementList, CompareShardPlacementsByGroupId);
 
+	/* do not try to delegate to coordinator even if it is in metadata */
+	placementList = RemoveCoordinatorPlacementFromList(placementList);
+
 	if (TaskAssignmentPolicy == TASK_ASSIGNMENT_ROUND_ROBIN)
 	{
-		/* do not try to delegate to coordinator if it is in metadata */
-		placementList = RemoveCoordinatorPlacementFromList(placementList);
-
 		/* reorder the placement list */
 		placementList = RoundRobinReorder(placementList);
 	}
