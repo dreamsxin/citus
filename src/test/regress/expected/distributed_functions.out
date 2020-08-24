@@ -734,7 +734,7 @@ WHERE pg_dist_partition.logicalrelid = 'replicated_table_func_test_4'::regclass 
  t
 (1 row)
 
--- a function can not be colocated with a reference table when a distribution column is provided
+-- a function cannot be colocated with a reference table when a distribution column is provided
 SELECT create_reference_table('replicated_table_func_test_3');
  create_reference_table
 ---------------------------------------------------------------------

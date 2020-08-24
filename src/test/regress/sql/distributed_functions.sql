@@ -419,7 +419,7 @@ FROM pg_dist_partition, citus.pg_dist_object as objects
 WHERE pg_dist_partition.logicalrelid = 'replicated_table_func_test_4'::regclass AND
 	  objects.objid = 'eq_with_param_names(macaddr, macaddr)'::regprocedure;
 
--- a function can not be colocated with a reference table when a distribution column is provided
+-- a function cannot be colocated with a reference table when a distribution column is provided
 SELECT create_reference_table('replicated_table_func_test_3');
 SELECT create_distributed_function('eq_with_param_names(macaddr, macaddr)', 'val1', colocate_with:='replicated_table_func_test_3');
 
