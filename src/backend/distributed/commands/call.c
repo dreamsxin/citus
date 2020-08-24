@@ -251,7 +251,6 @@ ShardPlacementForProcedureColocatedWithDistTable(DistObjectCacheEntry *procedure
 
 	/* Get the list of active shard placements ordered by the groupid */
 	List *placementList = ActiveShardPlacementList(shardInterval->shardId);
-	placementList = SortList(placementList, CompareShardPlacementsByGroupId);
 
 	if (list_length(placementList) != 1)
 	{
