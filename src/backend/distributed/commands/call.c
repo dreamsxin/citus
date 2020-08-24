@@ -45,14 +45,17 @@
 static bool CallFuncExprRemotely(CallStmt *callStmt,
 								 DistObjectCacheEntry *procedure,
 								 FuncExpr *funcExpr, DestReceiver *dest);
-static ShardPlacement * ShardPlacementWhenColocatedWithReferenceTable(
+static ShardPlacement * ShardPlacementForProcedureColocatedWithReferenceTable(
 	CitusTableCacheEntry *cacheEntry);
 
-static ShardPlacement * ShardPlacementWhenColocatedWithDistTable(
+static ShardPlacement * ShardPlacementForProcedureColocatedWithDistTable(
 	DistObjectCacheEntry *procedure,
-	FuncExpr *funcExpr,
-	Var *partitionColumn,
-	CitusTableCacheEntry *
+	FuncExpr *
+	funcExpr,
+	Var *
+	partitionColumn,
+	CitusTableCacheEntry
+	*
 	distTable);
 
 /*
@@ -117,12 +120,13 @@ CallFuncExprRemotely(CallStmt *callStmt, DistObjectCacheEntry *procedure,
 	ShardPlacement *placement = NULL;
 	if (colocatedWithReferenceTable)
 	{
-		placement = ShardPlacementWhenColocatedWithReferenceTable(distTable);
+		placement = ShardPlacementForProcedureColocatedWithReferenceTable(distTable);
 	}
 	else
 	{
-		placement = ShardPlacementWhenColocatedWithDistTable(procedure, funcExpr,
-															 partitionColumn, distTable);
+		placement = ShardPlacementForProcedureColocatedWithDistTable(procedure, funcExpr,
+																	 partitionColumn,
+																	 distTable);
 	}
 
 	/* return if we could not find a placement */
@@ -205,14 +209,14 @@ CallFuncExprRemotely(CallStmt *callStmt, DistObjectCacheEntry *procedure,
 
 
 /*
- * ShardPlacementWhenColocatedWithReferenceTable decides on a placement for delegating
+ * ShardPlacementForProcedureColocatedWithReferenceTable decides on a placement for delegating
  * a procedure call that reads from a reference table.
  *
  * If citus.task_assignment_policy is set to round-robin, we assign a different placement
  * on consecutive runs. Otherwise the function returns the first placement available.
  */
 static ShardPlacement *
-ShardPlacementWhenColocatedWithReferenceTable(CitusTableCacheEntry *cacheEntry)
+ShardPlacementForProcedureColocatedWithReferenceTable(CitusTableCacheEntry *cacheEntry)
 {
 	const ShardInterval *shardInterval = cacheEntry->sortedShardIntervalArray[0];
 	const uint64 referenceTableShardId = shardInterval->shardId;
@@ -232,14 +236,14 @@ ShardPlacementWhenColocatedWithReferenceTable(CitusTableCacheEntry *cacheEntry)
 
 
 /*
- * ShardPlacementWhenColocatedWithDistTable decides on a placement
+ * ShardPlacementForProcedureColocatedWithDistTable decides on a placement
  * for delegating a procedure call that accesses a distributed table.
  */
 static ShardPlacement *
-ShardPlacementWhenColocatedWithDistTable(DistObjectCacheEntry *procedure,
-										 FuncExpr *funcExpr,
-										 Var *partitionColumn,
-										 CitusTableCacheEntry *cacheEntry)
+ShardPlacementForProcedureColocatedWithDistTable(DistObjectCacheEntry *procedure,
+												 FuncExpr *funcExpr,
+												 Var *partitionColumn,
+												 CitusTableCacheEntry *cacheEntry)
 {
 	if (procedure->distributionArgIndex < 0 ||
 		procedure->distributionArgIndex >= list_length(funcExpr->args))

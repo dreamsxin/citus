@@ -58,14 +58,16 @@ struct ParamWalkerContext
 };
 
 static bool contain_param_walker(Node *node, void *context);
-static ShardPlacement * ShardPlacementWhenColocatedWithDistTable(
+static ShardPlacement * ShardPlacementForFunctionColocatedWithDistTable(
 	DistObjectCacheEntry *procedure,
 	FuncExpr *funcExpr,
-	Var *partitionColumn,
-	CitusTableCacheEntry *
+	Var *
+	partitionColumn,
+	CitusTableCacheEntry
+	*
 	cacheEntry,
 	PlannedStmt *plan);
-static ShardPlacement * ShardPlacementWhenColocatedWithReferenceTable(
+static ShardPlacement * ShardPlacementForFunctionColocatedWithReferenceTable(
 	CitusTableCacheEntry *cacheEntry);
 
 
@@ -288,13 +290,14 @@ TryToDelegateFunctionCall(DistributedPlanningContext *planContext)
 
 	if (colocatedWithReferenceTable)
 	{
-		placement = ShardPlacementWhenColocatedWithReferenceTable(distTable);
+		placement = ShardPlacementForFunctionColocatedWithReferenceTable(distTable);
 	}
 	else
 	{
-		placement = ShardPlacementWhenColocatedWithDistTable(procedure, funcExpr,
-															 partitionColumn, distTable,
-															 planContext->plan);
+		placement = ShardPlacementForFunctionColocatedWithDistTable(procedure, funcExpr,
+																	partitionColumn,
+																	distTable,
+																	planContext->plan);
 	}
 
 	/* return if we could not find a placement */
@@ -355,15 +358,15 @@ TryToDelegateFunctionCall(DistributedPlanningContext *planContext)
 
 
 /*
- * ShardPlacementWhenColocatedWithDistTable decides on a placement
+ * ShardPlacementForFunctionColocatedWithDistTable decides on a placement
  * for delegating a procedure call that accesses a distributed table.
  */
 static ShardPlacement *
-ShardPlacementWhenColocatedWithDistTable(DistObjectCacheEntry *procedure,
-										 FuncExpr *funcExpr,
-										 Var *partitionColumn,
-										 CitusTableCacheEntry *cacheEntry,
-										 PlannedStmt *plan)
+ShardPlacementForFunctionColocatedWithDistTable(DistObjectCacheEntry *procedure,
+												FuncExpr *funcExpr,
+												Var *partitionColumn,
+												CitusTableCacheEntry *cacheEntry,
+												PlannedStmt *plan)
 {
 	if (procedure->distributionArgIndex < 0 ||
 		procedure->distributionArgIndex >= list_length(funcExpr->args))
@@ -424,14 +427,14 @@ ShardPlacementWhenColocatedWithDistTable(DistObjectCacheEntry *procedure,
 
 
 /*
- * ShardPlacementWhenColocatedWithReferenceTable decides on a placement for delegating
+ * ShardPlacementForFunctionColocatedWithReferenceTable decides on a placement for delegating
  * a procedure call that reads from a reference table.
  *
  * If citus.task_assignment_policy is set to round-robin, we assign a different placement
  * on consecutive runs. Otherwise the function returns the first placement available.
  */
 static ShardPlacement *
-ShardPlacementWhenColocatedWithReferenceTable(CitusTableCacheEntry *cacheEntry)
+ShardPlacementForFunctionColocatedWithReferenceTable(CitusTableCacheEntry *cacheEntry)
 {
 	const ShardInterval *shardInterval = cacheEntry->sortedShardIntervalArray[0];
 	const uint64 referenceTableShardId = shardInterval->shardId;
