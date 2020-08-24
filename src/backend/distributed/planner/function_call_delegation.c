@@ -116,7 +116,7 @@ TryToDelegateFunctionCall(DistributedPlanningContext *planContext)
 	FuncExpr *funcExpr = NULL;
 	DistObjectCacheEntry *procedure = NULL;
 	Oid colocatedRelationId = InvalidOid;
-	bool colocationWithReferenceTable = false;
+	bool colocatedWithReferenceTable = false;
 	CitusTableCacheEntry *distTable = NULL;
 	Var *partitionColumn = NULL;
 	ShardPlacement *placement = NULL;
@@ -272,7 +272,7 @@ TryToDelegateFunctionCall(DistributedPlanningContext *planContext)
 	partitionColumn = distTable->partitionColumn;
 	if (partitionColumn == NULL)
 	{
-		colocationWithReferenceTable = true;
+		colocatedWithReferenceTable = true;
 	}
 
 	/*
@@ -286,7 +286,7 @@ TryToDelegateFunctionCall(DistributedPlanningContext *planContext)
 		return NULL;
 	}
 
-	if (colocationWithReferenceTable)
+	if (colocatedWithReferenceTable)
 	{
 		placement = ShardPlacementWhenColocatedWithReferenceTable(distTable);
 	}

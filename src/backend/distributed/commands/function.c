@@ -113,7 +113,7 @@ create_distributed_function(PG_FUNCTION_ARGS)
 	int distributionArgumentIndex = -1;
 	Oid distributionArgumentOid = InvalidOid;
 	int colocationId = -1;
-	bool colocationWithReferenceTable = false;
+	bool colocatedWithReferenceTable = false;
 
 	char *distributionArgumentName = NULL;
 	char *colocateWithTableName = NULL;
@@ -157,7 +157,7 @@ create_distributed_function(PG_FUNCTION_ARGS)
 		if (pg_strncasecmp(colocateWithTableName, "default", NAMEDATALEN) != 0)
 		{
 			Oid colocationRelationId = ResolveRelationId(colocateWithText, false);
-			colocationWithReferenceTable = IsReferenceTable(colocationRelationId);
+			colocatedWithReferenceTable = IsReferenceTable(colocationRelationId);
 		}
 	}
 
@@ -183,7 +183,7 @@ create_distributed_function(PG_FUNCTION_ARGS)
 
 	MarkObjectDistributed(&functionAddress);
 
-	if (distributionArgumentName == NULL && !colocationWithReferenceTable)
+	if (distributionArgumentName == NULL && !colocatedWithReferenceTable)
 	{
 		/*
 		 * cannot provide colocate_with without distribution_arg_name when the function
@@ -205,7 +205,7 @@ create_distributed_function(PG_FUNCTION_ARGS)
 		/* set distribution argument and colocationId to NULL */
 		UpdateFunctionDistributionInfo(&functionAddress, NULL, NULL);
 	}
-	else if (distributionArgumentName == NULL && colocationWithReferenceTable)
+	else if (distributionArgumentName == NULL && colocatedWithReferenceTable)
 	{
 		/* get the reference table colocation id */
 		colocationId = CreateReferenceTableColocationId();
