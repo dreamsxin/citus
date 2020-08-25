@@ -183,7 +183,30 @@ create_distributed_function(PG_FUNCTION_ARGS)
 
 	MarkObjectDistributed(&functionAddress);
 
-	if (distributionArgumentName == NULL && !colocatedWithReferenceTable)
+	if (distributionArgumentName != NULL)
+	{
+		/* get the argument index, or error out if we cannot find a valid index */
+		distributionArgumentIndex =
+			GetDistributionArgIndex(funcOid, distributionArgumentName,
+									&distributionArgumentOid);
+
+		/* get the colocation id, or error out if we cannot find an appropriate one */
+		colocationId =
+			GetFunctionColocationId(funcOid, colocateWithTableName,
+									distributionArgumentOid);
+
+		/* if provided, make sure to record the distribution argument and colocationId */
+		UpdateFunctionDistributionInfo(&functionAddress, &distributionArgumentIndex,
+									   &colocationId);
+
+		/*
+		 * Once we have at least one distributed function/procedure with distribution
+		 * argument, we sync the metadata to nodes so that the function/procedure
+		 * delegation can be handled locally on the nodes.
+		 */
+		TriggerSyncMetadataToPrimaryNodes();
+	}
+	else if (!colocatedWithReferenceTable)
 	{
 		/*
 		 * cannot provide colocate_with without distribution_arg_name when the function
@@ -205,7 +228,7 @@ create_distributed_function(PG_FUNCTION_ARGS)
 		/* set distribution argument and colocationId to NULL */
 		UpdateFunctionDistributionInfo(&functionAddress, NULL, NULL);
 	}
-	else if (distributionArgumentName == NULL && colocatedWithReferenceTable)
+	else if (colocatedWithReferenceTable)
 	{
 		/* get the reference table colocation id */
 		colocationId = CreateReferenceTableColocationId();
@@ -217,29 +240,6 @@ create_distributed_function(PG_FUNCTION_ARGS)
 		 * Once we have at least one distributed function/procedure that reads
 		 * from a reference table, we sync the metadata to nodes so that the
 		 * function/procedure delegation can be handled locally on the nodes.
-		 */
-		TriggerSyncMetadataToPrimaryNodes();
-	}
-	else if (distributionArgumentName != NULL)
-	{
-		/* get the argument index, or error out if we cannot find a valid index */
-		distributionArgumentIndex =
-			GetDistributionArgIndex(funcOid, distributionArgumentName,
-									&distributionArgumentOid);
-
-		/* get the colocation id, or error out if we cannot find an appropriate one */
-		colocationId =
-			GetFunctionColocationId(funcOid, colocateWithTableName,
-									distributionArgumentOid);
-
-		/* if provided, make sure to record the distribution argument and colocationId */
-		UpdateFunctionDistributionInfo(&functionAddress, &distributionArgumentIndex,
-									   &colocationId);
-
-		/*
-		 * Once we have at least one distributed function/procedure with distribution
-		 * argument, we sync the metadata to nodes so that the function/procedure
-		 * delegation can be handled locally on the nodes.
 		 */
 		TriggerSyncMetadataToPrimaryNodes();
 	}
