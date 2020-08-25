@@ -164,7 +164,6 @@ static List * SingleShardTaskList(Query *query, uint64 jobId,
 								  List *relationShardList, List *placementList,
 								  uint64 shardId, bool parametersInQueryResolved);
 static bool RowLocksOnRelations(Node *node, List **rtiLockList);
-static List * RemoveCoordinatorPlacement(List *placementList);
 static void ReorderTaskPlacementsByTaskAssignmentPolicy(Job *job,
 														TaskAssignmentPolicyType
 														taskAssignmentPolicy,
@@ -1836,7 +1835,7 @@ ReorderTaskPlacementsByTaskAssignmentPolicy(Job *job,
  * If the list has a single entry or no placements on the coordinator, the list
  * is return unmodified.
  */
-static List *
+List *
 RemoveCoordinatorPlacement(List *placementList)
 {
 	ListCell *placementCell = NULL;

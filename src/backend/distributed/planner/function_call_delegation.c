@@ -442,7 +442,7 @@ ShardPlacementForFunctionColocatedWithReferenceTable(CitusTableCacheEntry *cache
 	placementList = SortList(placementList, CompareShardPlacementsByGroupId);
 
 	/* do not try to delegate to coordinator even if it is in metadata */
-	placementList = RemoveCoordinatorPlacementFromList(placementList);
+	placementList = RemoveCoordinatorPlacement(placementList);
 
 	if (TaskAssignmentPolicy == TASK_ASSIGNMENT_ROUND_ROBIN)
 	{
