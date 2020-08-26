@@ -606,12 +606,20 @@ RegisterCitusConfigVariables(void)
 
 	DefineCustomBoolVariable(
 		"citus.subquery_pushdown",
-		gettext_noop("Enables supported subquery pushdown to workers."),
-		NULL,
+		gettext_noop("Usage of this GUC is highly discouraged, please read the long "
+					 "description"),
+		gettext_noop("When enabled, the planner skips many correctness checks "
+					 "for subqueries and pushes down the queries to shards as-is. "
+					 "It means that the queries are likely to return wrong results "
+					 "unless the user is absolutely sure that pushing down the "
+					 "subquery as-is. This GUC is maintained only for backward "
+					 "compatibility, no new users are supposed to use it. The planner"
+					 "is capable of pushing down as much computation as possible to the "
+					 "shards depending on the query."),
 		&SubqueryPushdown,
 		false,
 		PGC_USERSET,
-		GUC_STANDARD,
+		GUC_NO_SHOW_ALL,
 		NULL, NULL, NULL);
 
 	DefineCustomBoolVariable(
